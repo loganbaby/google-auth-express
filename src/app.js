@@ -3,10 +3,13 @@ const express = require('express'),
     session = require('express-session'),
     passport = require('passport'),
     GoogleStrategy = require('passport-google-oauth').OAuth2Strategy,
-    flash = require('connect-flash');
+    flash = require('connect-flash'),
+    musicians = require('./musician');
 
 const host = 'localhost';
 const port = 3000;
+
+musicians.youtube_music_api.initalize();    // init youtube music API
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
@@ -14,7 +17,7 @@ passport.deserializeUser((user, done) => done(null, user));
 function checkAuth() {
     return app.use((req, res, next) => {
         if (req.user) next();
-        else res.redirect('/login');
+        // else res.redirect('/login');
     });
 }
 
@@ -42,6 +45,18 @@ app.get('/login', (req, res) => {
    res.send('Login page. Please, authorize.');
 });
 
+app.get('/artist/:name', async (req, res) => {
+    const artistName = req.params.name;
+
+    try {
+        const artists = await musicians.getArtistByName(artistName);
+        res.json(artists);
+    } catch (error) {
+        console.error("An error occurred:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 app.get(
     '/auth/google',
     passport.authenticate('google', {
@@ -64,4 +79,3 @@ app.get('/home', checkAuth(), (req, res) => {
 app.listen(port, host, function () {
     console.log(`Server listens http://${host}:${port}`);
 });
-
