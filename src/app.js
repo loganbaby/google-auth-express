@@ -57,6 +57,19 @@ app.get('/artist/:name', async (req, res) => {
     }
 });
 
+
+app.get('/song/:name', async (req, res) => {
+    const songName = req.params.name;
+
+    try {
+        const artists = await musicians.getTrackByName(songName);
+        res.json(artists);
+    } catch (error) {
+        console.error("An error occurred:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 app.get(
     '/auth/google',
     passport.authenticate('google', {
